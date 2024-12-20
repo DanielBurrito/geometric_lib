@@ -13,8 +13,8 @@ def calc(fig, func, size):
 
     # Динамический вызов функции с использованием eval
     result = eval(f'{fig}.{func}(*{size})')
-    print(f'{func} of {fig} is {result}')
-
+    return result
+    
 if __name__ == "__main__":
     func = ''
     fig = ''
@@ -31,7 +31,6 @@ if __name__ == "__main__":
     # Запрос размеров фигуры у пользователя
     while len(size) != sizes.get(f"{func}-{fig}", 1):
         size = list(map(int, input("Input figure sizes separated by space, 1 for circle and square\n").split(' ')))
-    
 
 
 
