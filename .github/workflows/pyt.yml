@@ -1,0 +1,70 @@
+name: Checker
+
+on:
+  push:
+    branches:
+      - main
+      - release/*
+  pull_request:
+    branches:
+      - master
+      - release/*
+      - develop
+
+jobs:
+  test_and_lint:
+    runs-on: ubuntu-latest
+
+    env:
+        Name: "Малахов Даниил Сергеевич"
+        Group: "M33112"
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+
+    - name: Print personal information
+      run: |
+        echo "ФИО: ${{ env.Name }}"
+        echo "Номер группы: ${{ env.Group }}"
+        echo "Github Nick: ${{ github.actor }}"
+
+    - name: Set up Python 3.13
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.13'
+
+    - name: Install dependencies from requirements.txt
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run unit tests using pytest
+      run: |
+        pytest --maxfail=1 --disable-warnings -q
+
+    - name: Check code style with flake8
+      run: |
+        pip install flake8
+        flake8 .
+      continue-on-error: true 
+
+    - name: Format code with black (if needed)
+      run: |
+        pip install black
+        black --check .  # Проверяем, есть ли проблемы с форматированием
+      continue-on-error: true 
+
+    - name: Auto-format code with black (if needed)
+      if: ${{ steps.Check_code_style_with_flake8.outcome == 'failure' }} 
+      run: |
+        pip install black
+        black .  # Автоматически форматируем код
+
+    - name: Commit formatted code
+      if: ${{ steps.Auto_format_code_with_black.outcome == 'success' }} 
+      run: |
+        git config --global user.name "github-actions"
+        git config --global user.email "github-actions@github.com"
+        git add .
+        git commit -m "Auto-format code with black"
+        git push
